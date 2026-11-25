@@ -1,0 +1,832 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best Memories With Songs</title>
+
+    <style>
+        /* =========================
+           1. BASIC SETTINGS
+        ========================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #080808;
+            color: #ffffff;
+            font-family: Georgia, "Times New Roman", serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+
+        /* =========================
+           2. SNOW BACKGROUND
+        ========================= */
+
+        #snow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .snowflake {
+            position: absolute;
+            top: -20px;
+            color: white;
+            opacity: 0.2;
+            animation: snowfall linear infinite;
+        }
+
+        @keyframes snowfall {
+            0% {
+                transform: translateY(-20px) translateX(0);
+            }
+
+            100% {
+                transform: translateY(110vh) translateX(35px);
+            }
+        }
+
+
+        /* =========================
+           3. MAIN TITLE
+        ========================= */
+
+        header {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 100px 20px 75px;
+        }
+
+        h1 {
+            font-size: clamp(42px, 7vw, 88px);
+            font-weight: normal;
+            line-height: 1.05;
+            letter-spacing: -3px;
+            text-transform: uppercase;
+        }
+
+
+        /* =========================
+           4. ALBUM CAROUSEL
+        ========================= */
+
+        .album-section {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            padding: 30px 5% 100px;
+        }
+
+        .carousel-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .album-track {
+            display: flex;
+            gap: 28px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            padding: 25px 10px 35px;
+            cursor: grab;
+            scroll-snap-type: x mandatory;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .album-track::-webkit-scrollbar {
+            display: none;
+        }
+
+        .album-track.dragging {
+            cursor: grabbing;
+            scroll-behavior: auto;
+            scroll-snap-type: none;
+        }
+
+
+        /* =========================
+           5. ALBUM CARDS
+        ========================= */
+
+        .album {
+            flex: 0 0 280px;
+            scroll-snap-align: center;
+            text-align: center;
+            cursor: pointer;
+
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 12px 22px;
+
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.35s ease;
+        }
+
+        .album:hover {
+            transform: translateY(-8px) scale(1.025);
+            border-color: #ffffff;
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .album img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            display: block;
+        }
+
+        .album h2 {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: normal;
+            margin-top: 20px;
+            line-height: 1.4;
+        }
+
+
+        /* =========================
+           6. ARROW BUTTONS
+        ========================= */
+
+        .arrow {
+            flex: 0 0 40px;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: 50%;
+            background: transparent;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .arrow:hover {
+            background: white;
+            color: black;
+        }
+
+
+        /* =========================
+           7. LYRICS POPUP
+        ========================= */
+
+        .lyrics-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 10;
+
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .lyrics-overlay.active {
+            display: flex;
+        }
+
+        .lyrics-box {
+            position: relative;
+            background: #101010;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+
+            width: 100%;
+            max-width: 650px;
+            max-height: 80vh;
+            overflow-y: auto;
+
+            padding: 65px 45px;
+            text-align: center;
+        }
+
+        .lyrics-box h2 {
+            font-size: 30px;
+            font-weight: normal;
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
+
+        .lyrics-box .artist {
+            color: #999999;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .lyrics-box p {
+            font-size: 16px;
+            line-height: 2.1;
+            white-space: pre-line;
+            color: #dddddd;
+            margin-top: 35px;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+
+            border: none;
+            background: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .close-button:hover {
+            opacity: 0.6;
+        }
+
+
+        /* =========================
+           8. MOBILE RESPONSIVE
+        ========================= */
+
+        @media (max-width: 600px) {
+
+            header {
+                padding: 75px 15px 45px;
+            }
+
+            h1 {
+                letter-spacing: -1px;
+            }
+
+            .album-section {
+                padding: 20px 3% 70px;
+            }
+
+            .album {
+                flex: 0 0 230px;
+            }
+
+            .carousel-container {
+                gap: 6px;
+            }
+
+            .arrow {
+                flex-basis: 32px;
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+            }
+
+            .lyrics-box {
+                padding: 60px 25px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <!-- Snowfall background -->
+    <div id="snow"></div>
+
+
+    <!-- Main title -->
+    <header>
+        <h1>
+            BEST MEMORIES<br>
+            WITH SONGS
+        </h1>
+    </header>
+
+
+    <!-- Album carousel -->
+    <section class="album-section">
+
+        <div class="carousel-container">
+
+            <button class="arrow" id="prev" aria-label="Previous albums">
+                ‹
+            </button>
+
+            <div class="album-track" id="albumTrack">
+
+                <!-- Song 1 -->
+                <div class="album" onclick="openLyrics(0)">
+                    <img src="song1.jpg" alt="Just the Two of Us">
+                    <h2>Just the Two of Us</h2>
+                </div>
+
+                <!-- Song 2 -->
+                <div class="album" onclick="openLyrics(1)">
+                    <img src="song2.jpg" alt="If I Ain't Got You">
+                    <h2>If I Ain't Got You</h2>
+                </div>
+
+                <!-- Song 3 -->
+                <div class="album" onclick="openLyrics(2)">
+                    <img src="song3.jpg" alt="My Love Mine All Mine">
+                    <h2>My Love Mine All Mine</h2>
+                </div>
+
+                <!-- Song 4 -->
+                <div class="album" onclick="openLyrics(3)">
+                    <img src="song4.jpg" alt="Through the Rain">
+                    <h2>Through the Rain</h2>
+                </div>
+
+                <!-- Song 5 -->
+                <div class="album" onclick="openLyrics(4)">
+                    <img src="song5.jpg" alt="So Long, London">
+                    <h2>So Long, London</h2>
+                </div>
+
+            </div>
+
+            <button class="arrow" id="next" aria-label="Next albums">
+                ›
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- Lyrics popup -->
+    <div class="lyrics-overlay" id="lyricsOverlay"
+         onclick="closeOutside(event)">
+
+        <div class="lyrics-box">
+
+            <button class="close-button" onclick="closeLyrics()">
+                ×
+            </button>
+
+            <h2 id="lyricsTitle"></h2>
+
+            <div class="artist" id="lyricsArtist"></div>
+
+            <p id="lyricsText"></p>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        /* =========================
+           1. SONG INFORMATION
+        ========================= */
+
+        const songs = [
+
+            {
+                title: "Just the Two of Us",
+                artist: "Grover Washington Jr. feat. Bill Withers",
+                lyrics: `Just the Two of Us
+Grover Washington, Jr. / Bill Withers
+
+
+
+
+
+I see the crystal raindrops fall
+And the beauty of it all
+Is when the sun comes shining through
+To make those rainbows in my mind
+When I think of you some time
+And I want to spend some time with you
+Just the two of us
+We can make it if we try
+Just the two of us (Just two of us)
+Just the two of us
+Building castles in the sky
+Just the two of us
+You and I
+We look for love, no time for tears
+Wasted waters's all that is
+And it don't make no flowers grow
+Good things might come to those who wait
+Not to those who wait to late
+We got to go for all we know
+Just the two of us
+We can make it if we try
+Just the two of us (Just two of us)
+Just the two of us
+Building big castles in the sky
+Just the two of us
+You and I
+
+……
+I hear the crystal raindrops fall
+On the window down the hallAnd it becomes the morning dew
+Darling, when the morning comes
+And I see the morning sun
+I want to be the one with you
+Just the two of us
+We can make it if we try
+Just the two of us (Just the two of us)
+Just the two of us
+Building big castles way on high
+Just the two of us
+You and I
+."
+            },
+
+            {
+                title: "If I Ain't Got You",
+                artist: "Alicia Keys",
+                lyrics: "If I Ain't Got You
+Alicia Keys
+
+
+
+If I Ain't Got You
+
+Alicia Keys
+
+ 
+
+Some people live for the fortune
+Some people live just for the fame
+Some people live for the power,yeah
+Some people live just to play the game
+Some people think that the physical things
+Define what's within
+And I've been there before but that life's a bore
+So full of the superficial
+ 
+
+Some people want it all
+But I don't want nothing at all
+If it ain’t you baby
+If I ain't got you baby
+Some people want diamond rings
+Some just want everything
+But everything means nothing
+If I ain't got you,yeah
+Some people search for a fountain
+That promises forever young
+Some people need three dozen roses
+And that's the only way to prove you love them
+Hand me the world on a silver platter
+And what good would it be
+With no one to share
+With no one who truly cares for me
+ 
+
+Some people want it all
+But I don't want nothing at all
+If it ain’t you baby
+If I ain't got you baby
+Some people want diamond rings
+Some just want everything
+But everything means nothing
+If I ain't got you,you,you
+Some people want it all
+But I don't want nothing at all
+If it ain't you baby
+If I ain't got you baby
+Some people want diamond rings
+Some just want everything
+But everything means nothing
+If I ain't got you,yeah
+If I ain't got you with me baby
+ohh,so nothing in this whole wide world don't mean a thing
+If I ain't got you with me baby
+."
+            },
+
+            {
+                title: "My Love Mine All Mine",
+                artist: "Mitski",
+                lyrics: "My Love Mine All Mine
+Mitski
+
+
+Moon, a hole of light
+Through the big top tent up high
+Here before and after me
+Shinin' down on me
+Moon, tell me if I could
+Send up my heart to you
+So when I die, which I must do
+Could it shine down here with you?
+ 
+
+'Cause my love is mine, all mine
+I love, mine, mine, mine
+Nothing in the world belongs to me
+But my love, mine, all mine, all mine
+ 
+
+My baby here on earth
+Showed me what my heart was worth
+So, when it comes to be my turn
+Could you shine it down here for her?
+ 
+
+'Cause my love is mine, all mine
+I love, mine, mine, mine
+Nothing in the world belongs to me
+But my love, mine, all mine
+Nothing in the world is mine for free
+But my love, mine, all mine, all mine`
+            },
+
+            {
+                title: "Through the Rain",
+                artist: "Mariah Carey",
+                lyrics: `Through The Rain
+Mariah Carey
+
+When you get caught in the rain
+With no where to run
+When you're distraught and in pain
+Without anyone
+When you keep crying out to be saved
+But nobody comes
+And you feel so far away
+That you just can't find your way home
+You can get there alone' It's okay
+what you say is
+I can make it through the rain
+I can stand up once again
+On my own and I know
+That I'm strong enough to mend
+And every time I feel afraid
+I hold tighter to my faith
+And I live one more day
+And I make it through the rain
+And if you keep falling down
+Don't you dare give in
+You will arise safe and sound
+So keep pressing on steadfastly
+And you'll find what you need to prevail
+What you say is
+I can make it through the rain
+I can stand up once again
+On my own and I know
+That I'm strong enough to mend
+And every time I feel afraid
+I hold tighter to my faith
+And I live one more day
+And I make it through the rain
+And when the wind blows
+As shadows grow close
+Don't be afraid
+There's nothing you can't face
+And should they'd tell you
+You'd never pull through
+Don't hesitate
+Stand tall and say
+I can make it through the rain
+I can stand up once again
+On my own and I know
+That I'm strong enough to mend
+And every time I feel afraid
+I hold tighter to my faith
+And I live one more day
+And I make it through the rain
+I can make it through the rain
+And stand up once again
+And I'll live one more day
+And I can make it through the rain
+OH! Yes you can
+You're gonna make it through the rain`
+            },
+
+            {
+                title: "So Long, London",
+                artist: "Taylor Swift",
+                lyrics: `So long, London (So long, London)
+So long, London (So long, London)
+So long, London (So long, London)
+
+I saw in my mind fairy lights through the mist
+I kept calm and carried the weight of the rift
+Pulled him in tighter each time he was drifting away
+My spine split from carrying us up the hill
+Wet through my clothes, weary bones caught the chill
+I stopped trying to make him laugh, stopped trying to drill the safe
+Thinking how much sad did you think I had
+Did you think I had in me?
+Oh, the tragedy
+
+So long, London
+You'll find someone
+
+I didn't opt in to be your odd man out
+I founded the club she's heard great things about
+I left all I knew, you left me at the house by the Heath
+I stopped CPR, after all, it's no use
+The spirit was gone, we would never come to
+And I'm pissed off you let me give you all that youth for free
+
+For so long, London
+Stitches undone
+Two graves, one gun
+I'll find someone
+
+And you say I abandoned the ship
+But I was going down with it
+My white-knuckle dying grip
+Holding tight to your quiet resentment
+And my friends said it isn't right to be scared
+Every day of a love affair
+Every breath feels like rarest air
+When you're not sure if he wants to be there
+So how much sad did you think I had
+Did you think I had in me?
+How much tragedy?
+Just how low did you think I'd go
+Before I'd self-implode?
+Before I'd have to go be free?
+
+You swore that you loved me, but where were the clues?
+I died on the altar waiting for the proof
+You sacrificed us to the gods of your bluest days
+And I'm just getting color back into my face
+I'm just mad as hell 'cause I loved this place
+
+For so long, London (So long, London)
+Had a good run (Had a good run)
+A moment of warm sun (Moment of warm sun)
+But I'm not the one (I'm not the one)
+
+So long, London (So long, London)
+Stitches undone (Stitches undone)
+Two graves, one gun (Two graves, one gun)
+You'll find someone (You'll find)
+
+            }
+
+        ];
+
+
+        /* =========================
+           2. OPEN LYRICS
+        ========================= */
+
+        function openLyrics(index) {
+
+            document.getElementById("lyricsTitle").textContent =
+                songs[index].title;
+
+            document.getElementById("lyricsArtist").textContent =
+                songs[index].artist;
+
+            document.getElementById("lyricsText").textContent =
+                songs[index].lyrics;
+
+            document.getElementById("lyricsOverlay").classList.add("active");
+        }
+
+
+        /* =========================
+           3. CLOSE LYRICS
+        ========================= */
+
+        function closeLyrics() {
+
+            document.getElementById("lyricsOverlay")
+                .classList.remove("active");
+
+        }
+
+
+        // Close when clicking outside the popup
+        function closeOutside(event) {
+
+            if (event.target.id === "lyricsOverlay") {
+                closeLyrics();
+            }
+
+        }
+
+
+        // Close with ESC key
+        document.addEventListener("keydown", function(event) {
+
+            if (event.key === "Escape") {
+                closeLyrics();
+            }
+
+        });
+
+
+        /* =========================
+           4. CAROUSEL ARROWS
+        ========================= */
+
+        const track = document.getElementById("albumTrack");
+
+        document.getElementById("next").addEventListener("click", function() {
+
+            track.scrollBy({
+                left: 308,
+                behavior: "smooth"
+            });
+
+        });
+
+        document.getElementById("prev").addEventListener("click", function() {
+
+            track.scrollBy({
+                left: -308,
+                behavior: "smooth"
+            });
+
+        });
+
+
+        /* =========================
+           5. MOUSE DRAG
+        ========================= */
+
+        let isDragging = false;
+        let startX = 0;
+        let scrollStart = 0;
+
+        track.addEventListener("pointerdown", function(event) {
+
+            if (event.pointerType === "touch") return;
+
+            isDragging = true;
+            startX = event.clientX;
+            scrollStart = track.scrollLeft;
+
+            track.classList.add("dragging");
+            track.setPointerCapture(event.pointerId);
+
+        });
+
+        track.addEventListener("pointermove", function(event) {
+
+            if (!isDragging) return;
+
+            const distance = event.clientX - startX;
+
+            track.scrollLeft = scrollStart - distance;
+
+        });
+
+        function stopDragging() {
+
+            isDragging = false;
+            track.classList.remove("dragging");
+
+        }
+
+        track.addEventListener("pointerup", stopDragging);
+        track.addEventListener("pointercancel", stopDragging);
+
+
+        /* =========================
+           6. CREATE SNOWFLAKES
+        ========================= */
+
+        const snow = document.getElementById("snow");
+
+        for (let i = 0; i < 45; i++) {
+
+            const flake = document.createElement("span");
+
+            flake.className = "snowflake";
+            flake.textContent = "✦";
+
+            flake.style.left = Math.random() * 100 + "vw";
+
+            flake.style.animationDuration =
+                (10 + Math.random() * 15) + "s";
+
+            flake.style.animationDelay =
+                (Math.random() * 15) + "s";
+
+            flake.style.fontSize =
+                (5 + Math.random() * 7) + "px";
+
+            flake.style.opacity =
+                0.1 + Math.random() * 0.2;
+
+            snow.appendChild(flake);
+
+        }
+
+    </script>
+
+</body>
+
+</html>
